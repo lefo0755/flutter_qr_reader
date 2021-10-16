@@ -40,7 +40,7 @@ public final class OpenCameraInterface {
    * @param cameraId google.zxing.client.android.android.com.google.zxing.client.android.camera ID of the google.zxing.client.android.android.com.google.zxing.client.android.camera to use. A negative value
    *  or {@link #NO_REQUESTED_CAMERA} means "no preference", in which case a rear-facing
    *  google.zxing.client.android.android.com.google.zxing.client.android.camera is returned if possible or else any google.zxing.client.android.android.com.google.zxing.client.android.camera
-   * @return handle to {@link com.google.zxing.client.android.camera.open.OpenCamera} that was opened
+   * @return handle to {@link OpenCamera} that was opened
    */
   public static OpenCamera open(int cameraId) {
 
@@ -63,8 +63,8 @@ public final class OpenCameraInterface {
       while (index < numCameras) {
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         Camera.getCameraInfo(index, cameraInfo);
-        com.google.zxing.client.android.camera.open.CameraFacing reportedFacing = com.google.zxing.client.android.camera.open.CameraFacing.values()[cameraInfo.facing];
-        if (reportedFacing == com.google.zxing.client.android.camera.open.CameraFacing.BACK) {
+        CameraFacing reportedFacing = CameraFacing.values()[cameraInfo.facing];
+        if (reportedFacing == CameraFacing.BACK) {
           selectedCameraInfo = cameraInfo;
           break;
         }
@@ -81,7 +81,7 @@ public final class OpenCameraInterface {
         SimpleLog.w(TAG, "Requested google.zxing.client.android.android.com.google.zxing.client.android.camera does not exist: " + cameraId);
         camera = null;
       } else {
-        SimpleLog.i(TAG, "No google.zxing.client.android.android.com.google.zxing.client.android.camera facing " + com.google.zxing.client.android.camera.open.CameraFacing.BACK + "; returning google.zxing.client.android.android.com.google.zxing.client.android.camera #0");
+        SimpleLog.i(TAG, "No google.zxing.client.android.android.com.google.zxing.client.android.camera facing " + CameraFacing.BACK + "; returning google.zxing.client.android.android.com.google.zxing.client.android.camera #0");
         camera = Camera.open(0);
         selectedCameraInfo = new Camera.CameraInfo();
         Camera.getCameraInfo(0, selectedCameraInfo);

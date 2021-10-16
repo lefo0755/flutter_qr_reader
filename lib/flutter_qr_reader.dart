@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -8,18 +7,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 class FlutterQrReader {
-  static const MethodChannel _channel = const MethodChannel('me.hetian.flutter_qr_reader');
+  static const MethodChannel _channel = const MethodChannel('me.hetian.plugins/flutter_qr_reader');
 
-  static Future<String> imgScan(File file) async {
-    if (file?.existsSync() == false) {
-      return null;
-    }
+  static Future<String> imgScan(String path) async {
     try {
-      final rest = await _channel.invokeMethod("imgQrCode", {"file": file.path});
+      final rest = await _channel.invokeMethod("imgQrCode", {"file": path});
       return rest;
     } catch (e) {
-      print(e);
-      return null;
+      debugPrint(e.toString());
+      return '';
     }
   }
 }
@@ -33,10 +29,10 @@ class QrReaderView extends StatefulWidget {
   final double height;
 
   QrReaderView({
-    Key key,
-    this.width,
-    this.height,
-    this.callback,
+    Key? key,
+    required this.width,
+    required this.height,
+    required this.callback,
     this.autoFocusIntervalInMs = 500,
     this.torchEnabled = false,
   }) : super(key: key);
@@ -55,7 +51,7 @@ class _QrReaderViewState extends State<QrReaderView> {
   Widget build(BuildContext context) {
     if (defaultTargetPlatform == TargetPlatform.android) {
       return AndroidView(
-        viewType: "me.hetian.flutter_qr_reader.reader_view",
+        viewType: "me.hetian.plugins/flutter_qr_reader/reader_view",
         creationParams: {
           "width": (widget.width * window.devicePixelRatio).floor(),
           "height": (widget.height * window.devicePixelRatio).floor(),
@@ -70,7 +66,7 @@ class _QrReaderViewState extends State<QrReaderView> {
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return UiKitView(
-        viewType: "me.hetian.flutter_qr_reader.reader_view",
+        viewType: "me.hetian.plugins/flutter_qr_reader/reader_view",
         creationParams: {
           "width": widget.width,
           "height": widget.height,
@@ -103,31 +99,34 @@ typedef ReadChangeBack = void Function(String, List<Offset>);
 class QrReaderViewController {
   final int id;
   final MethodChannel _channel;
-  QrReaderViewController(this.id) : _channel = MethodChannel('me.hetian.flutter_qr_reader.reader_view_$id') {
+
+  QrReaderViewController(this.id)
+      : _channel = MethodChannel('me.hetian.plugins/flutter_qr_reader/reader_view_$id') {
     _channel.setMethodCallHandler(_handleMessages);
   }
-  ReadChangeBack onQrBack;
+
+  ReadChangeBack? onQrBack;
 
   Future _handleMessages(MethodCall call) async {
     switch (call.method) {
       case "onQRCodeRead":
-        final points = List<Offset>();
+        final points = <Offset>[];
         if (call.arguments.containsKey("points")) {
           final pointsStrs = call.arguments["points"];
           for (String point in pointsStrs) {
             final a = point.split(",");
-            points.add(Offset(double.tryParse(a.first), double.tryParse(a.last)));
+            points.add(Offset(double.tryParse(a.first) ?? 0, double.tryParse(a.last) ?? 0));
           }
         }
 
-        this.onQrBack(call.arguments["text"], points);
+        this.onQrBack!(call.arguments["text"], points);
         break;
     }
   }
 
   // 打开手电筒
-  Future<bool> setFlashlight() async {
-    return _channel.invokeMethod("flashlight");
+  Future<bool?> setFlashlight() async {
+    return _channel.invokeMethod<bool>("flashlight");
   }
 
   // 开始扫码
